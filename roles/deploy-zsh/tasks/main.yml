@@ -1,0 +1,32 @@
+---
+- name: Install zsh
+  ansible.builtin.apt:
+    pkg:
+      - zsh
+    update_cache: yes
+  become: true
+- name: Get my-conf
+  ansible.builtin.git:
+    repo: "{{myConfGitUrl}}"
+    dest: /home/{{ the_user }}/my-conf
+- name: Install my-conf for user
+  ansible.builtin.command: /bin/sh /home/{{ the_user }}/my-conf/install.sh skipAutoScreen
+- name: Change user shell to zsh
+  become: true
+  user:
+    name: "{{ the_user }}"
+    shell: /bin/zsh
+- name: Link my-conf for root
+  become: true
+  file:
+    src: /home/{{ the_user }}/my-conf
+    dest: /root/my-conf
+    state: link
+- name: Install my-conf for root
+  become: true
+  ansible.builtin.command: /bin/sh /root/my-conf/install.sh skipAutoScreen
+- name: Change root shell to zsh
+  become: true
+  user:
+    name: root
+    shell: /bin/zsh
