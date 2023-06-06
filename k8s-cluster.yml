@@ -1,0 +1,9 @@
+all:
+  children:
+    master:
+      hosts:
+        kube1:
+    worker:
+      hosts:
+        kube2:
+        kube3:
