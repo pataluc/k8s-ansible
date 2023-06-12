@@ -2,8 +2,8 @@ all:
   children:
     master:
       hosts:
-        kube1:
+        kube-master1:
     worker:
       hosts:
-        kube2:
-        kube3:
+        kube-worker1:
+        kube-worker2:
