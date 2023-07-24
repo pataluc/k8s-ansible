@@ -1,0 +1,4 @@
+---
+- name: Reset Kubernetes component
+  ansible.builtin.shell: "kubeadm reset --force --cri-socket={{ cri_socket }}"
+  register: reset_cluster

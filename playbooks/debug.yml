@@ -1,5 +1,9 @@
 ---
 - hosts: all
+  become: true
   tasks:
     - name: Echo hostname
-      command: hostname
+      ansible.builtin.command: hostname
+    - name: inventory_hostname
+      ansible.builtin.debug:
+        var: inventory_hostname

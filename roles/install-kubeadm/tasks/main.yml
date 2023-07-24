@@ -1,0 +1,38 @@
+---
+- name: Install kubeadm prerequisites
+  ansible.builtin.apt:
+    update_cache: yes
+    pkg:
+     - apt-transport-https
+     - ca-certificates
+     - curl
+
+- name: Add Google Cloud public APT signing key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add Kubernetes APT repository
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes
+
+- name: Install kubeadm kubelet and kubectl
+  ansible.builtin.apt:
+    update_cache: yes
+    pkg:
+     - kubeadm
+     - kubelet
+     - kubectl
+
+- name: Disable system swap
+  shell: "swapoff -a"
+
+- name: Remove current swaps from fstab
+  lineinfile:
+    dest: /etc/fstab
+    regexp: '(?i)^([^#][\S]+\s+(none|swap)\s+swap.*)'
+    line: '# \1'
+    backrefs: yes
+    state: present

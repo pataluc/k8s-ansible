@@ -1,0 +1,8 @@
+---
+- name: Join Kubernetes cluster
+  ansible.builtin.shell: |
+    kubeadm join --token {{ hostvars[groups['master'][0]]['kubeadm_token'].stdout }} \
+                 --cri-socket={{ cri_socket }} \
+                 --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['master'][0]]['kubeadm_discovery_hash'].stdout }} \
+                 --node-name={{ inventory_hostname }} \ 
+                {{ master_ip }}:6443

@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - reset-cluster
+- hosts: master
+  become: true
+  roles:
+    - create-cluster
+- hosts: worker
+  become: true
+  roles:
+    - join-cluster

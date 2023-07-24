@@ -1,0 +1,45 @@
+---
+- name: Enable overlay and br_netfilter modules
+  copy:
+    src: modules-k8s.conf
+    dest: /etc/modules-load.d/k8s.conf
+    mode: 0644
+
+- name: Probing overlay and br_netfilter modules
+  ansible.builtin.command: modprobe overlay && modprobe br_netfilter
+    
+- name: Forwarding IPv4 and letting iptables see bridged traffic
+  copy:
+    src: sysctl-k8s.conf
+    dest: /etc/sysctl.d/k8s.conf
+    mode: 0644
+
+- name: Apply sysctl params
+  ansible.builtin.command: sysctl --system
+
+- name: Add Docker APT signing key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker APT repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu lunar stable
+    state: present
+    filename: docker
+
+- name: Install Docker engine
+  ansible.builtin.apt:
+    update_cache: yes
+    pkg:
+     - docker-ce
+     - docker-ce-cli
+     - containerd.io
+     - docker-buildx-plugin
+     - docker-compose-plugin
+
+- name: Deploy default containerd config with SystemdCgroup enabled
+  ansible.builtin.command: containerd config default | sed 's/SystemdCgroup = false/SystemdCgroup = true/' | tee /etc/containerd/config.toml
+
+- name: Restart containerd
+  ansible.builtin.command: systemctl restart containerd

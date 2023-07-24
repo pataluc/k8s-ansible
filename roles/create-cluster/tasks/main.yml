@@ -1,0 +1,40 @@
+---
+- name: Generate kubeadm token
+  ansible.builtin.shell: "kubeadm token generate"
+  register: kubeadm_token
+
+- name: Init Kubernetes cluster
+  when: reset_cluster is succeeded
+  ansible.builtin.shell: |
+    kubeadm init --service-cidr {{ service_cidr }} \
+                 --kubernetes-version {{ kube_version }} \
+                 --pod-network-cidr {{ pod_network_cidr }} \
+                 --token {{ kubeadm_token.stdout }} \
+                 --apiserver-advertise-address {{ master_ip }} \
+                 --cri-socket={{ cri_socket }} \
+                 --node-name={{ inventory_hostname }}
+
+- name: Create Kubernetes config directory
+  ansible.builtin.file:
+    path: ".kube/"
+    state: directory
+
+- name: Copy admin.conf to Home directory
+  ansible.builtin.copy:
+    src: "{{ kubeadmin_config }}"
+    dest: ".kube/config"
+    owner: "{{ the_user }}"
+    group: "{{ the_user }}"
+    mode: 0755
+    remote_src: true
+
+- name: Get discovery token hash
+  ansible.builtin.shell: "openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'"
+  register: kubeadm_discovery_hash
+
+- name: Deploy calico
+  ansible.builtin.shell: |
+    kubectl create --kubeconfig={{ kubeadmin_config }} --filename https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/tigera-operator.yaml
+    curl https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/custom-resources.yaml \
+    | sed "s!192.168.0.0/16!{{ pod_network_cidr }}!" | kubectl create --kubeconfig={{ kubeadmin_config }} --filename -
+

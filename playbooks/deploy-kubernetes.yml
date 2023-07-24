@@ -1,7 +1,5 @@
 ---
-- hosts: all
-  become: true
-  vars:
-    the_user: "{{ ansible_user_id }}"
-  roles:
-    - deploy-zsh
+- name: Prerequisites
+  ansible.builtin.import_playbook: prerequisites.yml
+- name: Reinit cluster
+  ansible.builtin.import_playbook: reinit-cluster.yml
