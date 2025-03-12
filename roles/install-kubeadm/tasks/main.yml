@@ -1,30 +1,38 @@
 ---
 - name: Install kubeadm prerequisites
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
     pkg:
-     - apt-transport-https
-     - ca-certificates
-     - curl
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
 
-- name: Add Google Cloud public APT signing key
-  apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+- name: Add pkgs.k8s.io APT signing key
+  ansible.builtin.apt_key:
+    url: "{{k8s_url_apt_key}}"
+    keyring: "{{k8s_gpgpath}}"
     state: present
 
-- name: Add Kubernetes APT repository
+- name: Add pkgs.k8s.io APT repository
   apt_repository:
-    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-    state: present
     filename: kubernetes
+    repo: "deb [signed-by={{ k8s_gpgpath }}] {{ k8s_repository }} /"
+    state: present
 
 - name: Install kubeadm kubelet and kubectl
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
     pkg:
-     - kubeadm
-     - kubelet
-     - kubectl
+      - kubeadm
+      - kubelet
+      - kubectl
+
+- name: Install calicoctl
+  ansible.builtin.get_url:
+    url: https://github.com/projectcalico/calico/releases/latest/download/calicoctl-linux-amd64
+    dest: /usr/bin/calicoctl
+    mode: 0755
 
 - name: Disable system swap
   shell: "swapoff -a"
@@ -34,5 +42,5 @@
     dest: /etc/fstab
     regexp: '(?i)^([^#][\S]+\s+(none|swap)\s+swap.*)'
     line: '# \1'
-    backrefs: yes
+    backrefs: true
     state: present

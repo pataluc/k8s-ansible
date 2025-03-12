@@ -5,7 +5,8 @@ myConfGitUrl: "https://github.com/pataluc/my-conf.git"
 master_ip: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address | default(groups['master'][0]) }}"
 
 # Kubernetes
-kube_version: v1.27.4
+kube_version_minor: v1.32
+kube_version: v1.32.2
 kubeadmin_config: /etc/kubernetes/admin.conf
 
 cri_socket: unix:///var/run/{{ container_runtime }}/{{ container_runtime }}.sock
@@ -14,3 +15,6 @@ service_cidr: "10.96.0.0/12"
 pod_network_cidr: "10.229.0.0/16"
 
 container_runtime: containerd
+
+# Calico
+calico_version: v3.29.2
